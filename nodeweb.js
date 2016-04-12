@@ -100,24 +100,25 @@
 
   Web.prototype.render = function() {
     this.ctx.clearRect(0,0,_X,_Y);
-    var dist, x1, y1, z1, x2, y2, z2, color;
+    var dist, x1, y1, z1, x2, y2, z2, color, closest;
     for (var f = 0; f < this.nodes.length; f++) {
+      x1 = this.nodes[f].pos[0];
+      y1 = this.nodes[f].pos[1];
+      z1 = this.nodes[f].pos[2];
       for (var s = f+1; s < this.nodes.length; s++) {
-        x1 = this.nodes[f].pos[0];
-        y1 = this.nodes[f].pos[1];
-        z1 = this.nodes[f].pos[2];
         x2 = this.nodes[s].pos[0];
         y2 = this.nodes[s].pos[1];
         z2 = this.nodes[s].pos[2];
         dist = Math.sqrt( Math.pow((x1-x2),2) + Math.pow((y1-y2),2) + Math.pow((z1-z2),2) );
         if ( dist < _Z * 2 ) {
           color = 1/Math.pow(dist,2) * 30 * _Z;
+          this.ctx.lineWidth = 1;
           this.ctx.strokeStyle = "rgba(255,255,255," + color + ")";
           this.ctx.beginPath();
           this.ctx.moveTo(this.nodes[f].offx,this.nodes[f].offy);
           this.ctx.lineTo(this.nodes[s].offx,this.nodes[s].offy);
           this.ctx.stroke();
-      }
+        }
       }
       // this.nodes[f].draw();
       this.nodes[f].move();
@@ -136,6 +137,7 @@
   });
 
   var resizeWindow = function() {
+
     _X = window.innerWidth;
     _Y = window.innerHeight;
     _Z = ( _X + _Y ) / 2;
