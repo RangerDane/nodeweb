@@ -1,11 +1,12 @@
 (function(){
-  // var _X = 600;
-  // var _Y = 600;
-
   var _X = window.innerWidth;
   var _Y = window.innerHeight;
 
   var _Z = ( _X + _Y ) / 2;
+
+  var BRIGHTNESS = 35;
+  var MAXDIST = _Z / 2;
+  var NODE_COUNT = 75;
 
   var _COLORS = [ [165,13,46],
               [186,61,90],
@@ -18,9 +19,11 @@
               [117,33,57],
               [130,36,227]];
 
-  _RANDS = [];
-  for (var i = 0; i < 50; i++) {
-    _RANDS.push( Math.random() );
+  // Second term clips intensity to 0 at max distance for smooth fade in/out
+  var intensity = function( dist ) {
+    return Math.min(
+      ( 1/Math.pow( dist, 2 ) * BRIGHTNESS * _Z )
+    - ( 1/Math.pow( MAXDIST, 2 ) * BRIGHTNESS * _Z ), 1);
   }
 
   var Node = function( ctx ) {
@@ -92,12 +95,12 @@
     this.pos[1] += this.vel[1];
     this.pos[2] += this.vel[2];
 
-    // fake 3d
-    // this.offx = ( this.pos[0] + ( ( (_X / 2) - this.pos[0] ) * ( 0.3 * ( this.pos[2]/_X ) ) ) );
-    // this.offy = ( this.pos[1] + ( ( (_Y / 2) - this.pos[1] ) * ( 0.3 * ( this.pos[2]/_Y ) ) ) );
-
     this.offx = this.pos[0];
     this.offy = this.pos[1];
+
+    // for fake 3d effect
+    // this.offx = ( this.pos[0] + ( ( (_X / 2) - this.pos[0] ) * ( 0.3 * ( this.pos[2]/_X ) ) ) );
+    // this.offy = ( this.pos[1] + ( ( (_Y / 2) - this.pos[1] ) * ( 0.3 * ( this.pos[2]/_Y ) ) ) );
 
     this.testOutOfBounds();
   }
@@ -108,9 +111,7 @@
   }
 
   Web.prototype.start = function() {
-    // this.ctx.fillStyle = "blue";
-    // this.ctx.fillRect(20,20,150,100);
-    for (var i = 0; i < 50; i++) {
+    for (var i = 0; i < NODE_COUNT; i++) {
       this.nodes.push( new Node( this.ctx ) );
     }
     // kick off the show
@@ -129,10 +130,10 @@
         y2 = this.nodes[s].pos[1];
         z2 = this.nodes[s].pos[2];
         dist = Math.sqrt( Math.pow((x1-x2),2) + Math.pow((y1-y2),2) + Math.pow((z1-z2),2) );
-        if ( dist < _Z ) {
+        if ( dist < MAXDIST ) {
           color = _COLORS[ (f + s) % _COLORS.length ];
-          alpha = 1/Math.pow(dist,2) * 35 * _Z;
-          this.ctx.lineWidth = Math.min( Math.max( alpha, 1 ), 2);
+          alpha = intensity( dist );
+          this.ctx.lineWidth = Math.max( 1, alpha * 2 );
           r = color[0];
           g = color[1];
           b = color[2]
@@ -143,22 +144,13 @@
           this.ctx.stroke();
         }
       }
-      // this.nodes[f].draw();
       this.nodes[f].move();
     }
     requestAnimationFrame( this.render.bind(this) );
   };
 
   Web.prototype.collectNodes = function(x,y) {
-    // var i = 0;
-    // var intensity;
     this.nodes.forEach( function( node ) {
-      // inverse square law
-      // intensity = 1000000 / ( Math.pow( x - node.pos[0], 2 ) + Math.pow( y - node.pos[1], 2 ) );
-      // node.vel[0] = ( x - node.pos[0] ) * ( _RANDS[ i % _RANDS.length ] * (Math.min( 50, intensity ) + i) ) / ( _X );
-      // node.vel[1] = ( y - node.pos[1] ) * ( _RANDS[ i % _RANDS.length ] * (Math.min( 50, intensity ) + i) ) / ( _Y );
-      // console.log(intensity);
-      // i++;
       node.vel[0] = Math.random() * 4 - 2;
       node.vel[1] = Math.random() * 4 - 2;
     });
@@ -169,12 +161,12 @@
     canvas.width = _X;
     canvas.height = _Y;
     var ctx = canvas.getContext("2d");
+    ctx.globalCompositeOperation = "lighter";
 
     var web = new Web( ctx );
     web.start();
 
     document.addEventListener("click", function(e) { web.collectNodes(e.pageX, e.pageY) } );
-    // document.addEventListener("mousemove", function(e) { web.collectNodes(e.pageX, e.pageY) } );
   });
 
   var resizeWindow = function() {
@@ -187,13 +179,4 @@
   }
 
   window.onresize = resizeWindow;
-
-  // var projectedX = function( x, z ) {
-  //   console.log(x,z);
-  //   var projx = ( x + ( (200-x) * 0.3 ) );
-  //   console.log(projx);
-  // }
-  //
-  // projectedX( 0, 400 );
-  // projectedX( 400, 400);
 })();
