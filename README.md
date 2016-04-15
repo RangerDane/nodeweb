@@ -10,7 +10,7 @@ Watch as `NODE_COUNT` nodes bounce around on screen, connected by lines that var
 * Beautiful colors
 * Also works on mobile
 
-![screenshot of the thing](./docs/screenshot.png)
+![screenshot of the thing](./docs/screenshot-opaque.png)
 
 ## Why?
 I was inspired by the really neat ending credits of Ex Machina
